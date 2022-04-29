@@ -36,7 +36,6 @@ cria as pastas
 
 OrderRobots
     Get The Program Author Name From Our Vault
-    ${username}=    Get The User Name
     Open website
 
 
@@ -54,7 +53,7 @@ OrderRobots
     Create a Zip
 
     Log Out And Close The Browser
-    Display the success dialog  USER_NAME=${username}
+   
 
 *** Keywords ***
 Open website
