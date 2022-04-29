@@ -17,7 +17,7 @@ Library           RPA.Robocloud.Secrets
 Library           OperatingSystem
 
 
-*** Variables ***
+*** Variables *** 
 ${url}            https://robotsparebinindustries.com/#/robot-order
 
 ${img_folder}     ${CURDIR}${/}image_files
