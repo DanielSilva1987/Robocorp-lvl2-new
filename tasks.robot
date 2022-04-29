@@ -36,7 +36,6 @@ cria as pastas
 
 OrderRobots
     Get The Program Author Name From Our Vault
-    ${username}=    Get The User Name
     Open website
 
 
