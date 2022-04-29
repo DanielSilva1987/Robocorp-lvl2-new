@@ -16,15 +16,6 @@ Library           RPA.Dialogs
 Library           RPA.Robocloud.Secrets
 Library           OperatingSystem
 
-# I removed these as the previous setup would not look pretty when being used in combination with the rpa.dialogs work flow.
-#Suite Setup       Open the robot order website
-#Suite Teardown    Log Out And Close The Browser
-
-#
-# In order to run this program, you MUST change the devdata/env.json file. Its content only seems to accept an absolute
-# file name. This seems to be a RPA limitation.
-#  Addititionally, the venv setting in the .vscode/settings.json file needs to be changed.
-#
 
 *** Variables ***
 ${url}            https://robotsparebinindustries.com/#/robot-order
@@ -33,17 +24,15 @@ ${img_folder}     ${CURDIR}${/}image_files
 ${pdf_folder}     ${CURDIR}${/}pdf_files
 ${output_folder}  ${CURDIR}${/}output
 
-${orders_file}    ${CURDIR}${/}orders.csv
+${Arquivo_Order}    ${CURDIR}${/}orders.csv
 ${zip_file}       ${output_folder}${/}pdf_archive.zip
 ${csv_url}        https://robotsparebinindustries.com/orders.csv
 
 
 *** Test Cases ***
-Order robots from RobotSpareBin Industries Inc
-    Directory Cleanup
+Directory Cleanup
 
-    Get The Program Author Name From Our Vault
-    ${username}=    Get The User Name
+OrderRobots
     Open the robot order website
 
     ${orders}=    Get orders
@@ -68,21 +57,14 @@ Open the robot order website
 
 Directory Cleanup
     Log To console      Cleaning up content from previous test runs
-
-    # The archive command will not create this automatically so we need to ensure that the directory is there
-    # Create Directory will not give us an error if the directory already exists.
     Create Directory    ${output_folder}
     Create Directory    ${img_folder}
     Create Directory    ${pdf_folder}
 
-    Empty Directory     ${img_folder}
-    Empty Directory     ${pdf_folder}
-    #Empty Directory     ${output_folder}
-
 Get orders
-    Download    url=${csv_url}         target_file=${orders_file}    overwrite=True
-    ${table}=   Read table from CSV    path=${orders_file}
-    [Return]    ${table}
+    Download    url=${csv_url}         target_file=${Arquivo_Order}    overwrite=True
+    ${tabela}=   Read table from CSV    path=${Arquivo_Order}
+    [Return]    ${tabela}
 
 Close the annoying modal
     # Define local variables for the UI elements
@@ -93,17 +75,12 @@ Fill the form
     [Arguments]     ${myrow}
 
     # Extract the values from the  dictionary
-    Set Local Variable    ${order_no}   ${myrow}[Order number]
+    Set Local Variable    ${order_no}   ${myrow}[Numero_Order]
     Set Local Variable    ${head}       ${myrow}[Head]
     Set Local Variable    ${body}       ${myrow}[Body]
     Set Local Variable    ${legs}       ${myrow}[Legs]
     Set Local Variable    ${address}    ${myrow}[Address]
 
-    # Define local variables for the UI elements
-    # "legs" UID changes all the time so this one uses an
-    # absolute xpath. I prefer local variables over 
-    # "Assign ID To Element" as the latter does not seem
-    # to be able to use a full XPath reference
     Set Local Variable      ${input_head}       //*[@id="head"]
     Set Local Variable      ${input_body}       body
     Set Local Variable      ${input_legs}       xpath://html/body/div/div/div[1]/div/div[1]/form/div[3]/input
@@ -112,13 +89,6 @@ Fill the form
     Set Local Variable      ${btn_order}        //*[@id="order"]
     Set Local Variable      ${img_preview}      //*[@id="robot-preview-image"]
 
-    # Input the data. I use a "cautious" approach and assume
-    # that there are situations when a field is not yet visible
-    # It is however assumed that all of the input elements are visible
-    # when the first element has been rendered visible.
-    # An even more careful approach would result in checking if e.g.
-    # the given group is actually a radio button, dropdown list etc.
-    # However, this was deemed out of scope for this exercise
     Wait Until Element Is Visible   ${input_head}
     Wait Until Element Is Enabled   ${input_head}
     Select From List By Value       ${input_head}           ${head}
@@ -155,8 +125,6 @@ Take a screenshot of the robot
     Set Local Variable      ${lbl_orderid}      xpath://html/body/div/div/div[1]/div/div[1]/div/div/p[1]
     Set Local Variable      ${img_robot}        //*[@id="robot-preview-image"]
 
-    # This is supposed to help with network congestion (I hope)
-    # when loading an image takes too long and we will only end up with a partial download.
     Wait Until Element Is Visible   ${img_robot}
     Wait Until Element Is Visible   ${lbl_orderid} 
 
@@ -166,13 +134,6 @@ Take a screenshot of the robot
     # Create the File Name
     Set Local Variable              ${fully_qualified_img_filename}    ${img_folder}${/}${orderid}.png
 
-    # The sleep command is a dirty workaround for the case where one part of the three-folded image has not yet been loaded
-    # This can happen at very throttled download speeds and results in an incomplete target image.
-    # A preference would be to have a keyword such as "Wait until image has been downloaded" over this quick hack
-    # but even Selenium does not support this natively. 
-    #
-    # Sorry mates - I mainly use Robot Framework for REST APIs. Web testing is not my primary domain :-)
-    #
     Sleep   1sec
     Log To Console                  Capturing Screenshot to ${fully_qualified_img_filename}
     Capture Element Screenshot      ${img_robot}    ${fully_qualified_img_filename}
@@ -197,11 +158,11 @@ Store the receipt as a PDF file
     Log To Console                  Printing ${ORDER_NUMBER}
     ${order_receipt_html}=          Get Element Attribute   //*[@id="receipt"]  outerHTML
 
-    Set Local Variable              ${fully_qualified_pdf_filename}    ${pdf_folder}${/}${ORDER_NUMBER}.pdf
+    Set Local Variable              ${arquivo_PDF}    ${pdf_folder}${/}${ORDER_NUMBER}.pdf
 
-    Html To Pdf                     content=${order_receipt_html}   output_path=${fully_qualified_pdf_filename}
+    Html To Pdf                     content=${order_receipt_html}   output_path=${arquivo_PDF}
 
-    [Return]    ${fully_qualified_pdf_filename}
+    [Return]    ${arquivo_PDF}
 
 Embed the robot screenshot to the receipt PDF file
     [Arguments]     ${IMG_FILE}     ${PDF_FILE}
@@ -216,23 +177,4 @@ Embed the robot screenshot to the receipt PDF file
     # Add the files to the PDF
 
     Add Files To PDF    ${myfiles}    ${PDF_FILE}     ${True}
-
     Close PDF           ${PDF_FILE}
-
-Get The Program Author Name From Our Vault
-    Log To Console          Getting Secret from our Vault
-    ${secret}=              Get Secret      mysecrets
-    Log                     ${secret}[whowrotethis] wrote this program for you      console=yes
-
-Get The User Name
-    Add heading             I am your RoboCorp Order Genie
-    Add text input          myname    label=What is thy name, oh sire?     placeholder=Give me some input here
-    ${result}=              Run dialog
-    [Return]                ${result.myname}
-
-Display the success dialog
-    [Arguments]   ${USER_NAME}
-    Add icon      Success
-    Add heading   Your orders have been processed
-    Add text      Dear ${USER_NAME} - all orders have been processed. Have a nice day!
-    Run dialog    title=Success
