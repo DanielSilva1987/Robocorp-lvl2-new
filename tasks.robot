@@ -30,48 +30,48 @@ ${csv_url}        https://robotsparebinindustries.com/orders.csv
 
 
 *** Test Cases ***
-Directory Cleanup
+cria pastas
 
 OrderRobots
-    Open the robot order website
+    Open website
 
-    ${orders}=    Get orders
+    ${orders}=    pega orders
     FOR    ${row}    IN    @{orders}
-        Close the annoying modal
-        Fill the form           ${row}
-        Wait Until Keyword Succeeds     10x     2s    Preview the robot
-        Wait Until Keyword Succeeds     10x     2s    Submit The Order
-        ${orderid}  ${img_filename}=    Take a screenshot of the robot
-        ${pdf_filename}=                Store the receipt as a PDF file    ORDER_NUMBER=${order_id}
-        Embed the robot screenshot to the receipt PDF file     IMG_FILE=${img_filename}    PDF_FILE=${pdf_filename}
-        Go to order another robot
+        Fecha popup
+        Preenche form           ${row}
+        Wait Until Keyword Succeeds     10x     2s    cria preview
+        Wait Until Keyword Succeeds     10x     2s    Submit order
+        ${orderid}  ${img_filename}=    tira print
+        ${pdf_filename}=                Salva em PDF    ORDER_NUMBER=${order_id}
+        Salva print no PDF     IMG_FILE=${img_filename}    PDF_FILE=${pdf_filename}
+        proximo robot
     END
-    Create a ZIP file of the receipts
+    Create a Zip
 
     Log Out And Close The Browser
     Display the success dialog  USER_NAME=${username}
 
 *** Keywords ***
-Open the robot order website
+Open website
     Open Available Browser     ${url}
 
-Directory Cleanup
+cria pastas
     Log To console      Cleaning up content from previous test runs
     Create Directory    ${output_folder}
     Create Directory    ${img_folder}
     Create Directory    ${pdf_folder}
 
-Get orders
+pega orders
     Download    url=${csv_url}         target_file=${Arquivo_Order}    overwrite=True
     ${tabela}=   Read table from CSV    path=${Arquivo_Order}
     [Return]    ${tabela}
 
-Close the annoying modal
+Fecha popup
     # Define local variables for the UI elements
     Set Local Variable              ${btn_yep}        //*[@id="root"]/div/div[2]/div/div/div/div/div/button[2]
     Wait And Click Button           ${btn_yep}
 
-Fill the form
+Preenche form
     [Arguments]     ${myrow}
 
     # Extract the values from the  dictionary
@@ -101,14 +101,14 @@ Fill the form
     Wait Until Element Is Enabled   ${input_address}
     Input Text                      ${input_address}        ${address}
 
-Preview the robot
+cria preview
     # Define local variables for the UI elements
     Set Local Variable              ${btn_preview}      //*[@id="preview"]
     Set Local Variable              ${img_preview}      //*[@id="robot-preview-image"]
     Click Button                    ${btn_preview}
     Wait Until Element Is Visible   ${img_preview}
 
-Submit the order
+Submit order
     # Define local variables for the UI elements
     Set Local Variable              ${btn_order}        //*[@id="order"]
     Set Local Variable              ${lbl_receipt}      //*[@id="receipt"]
@@ -116,11 +116,11 @@ Submit the order
     #Do not generate screenshots if the test fails
     Mute Run On Failure             Page Should Contain Element 
 
-    # Submit the order. If we have a receipt, then all is well
+    # Submit order. If we have a receipt, then all is well
     Click button                    ${btn_order}
     Page Should Contain Element     ${lbl_receipt}
 
-Take a screenshot of the robot
+tira print
     # Define local variables for the UI elements
     Set Local Variable      ${lbl_orderid}      xpath://html/body/div/div/div[1]/div/div[1]/div/div/p[1]
     Set Local Variable      ${img_robot}        //*[@id="robot-preview-image"]
@@ -137,10 +137,10 @@ Take a screenshot of the robot
     Sleep   1sec
     Log To Console                  Capturing Screenshot to ${fully_qualified_img_filename}
     Capture Element Screenshot      ${img_robot}    ${fully_qualified_img_filename}
-    
+
     [Return]    ${orderid}  ${fully_qualified_img_filename}
 
-Go to order another robot
+proximo robot
     # Define local variables for the UI elements
     Set Local Variable      ${btn_order_another_robot}      //*[@id="order-another"]
     Click Button            ${btn_order_another_robot}
@@ -148,10 +148,10 @@ Go to order another robot
 Log Out And Close The Browser
     Close Browser
 
-Create a Zip File of the Receipts
+Create a Zip
     Archive Folder With ZIP     ${pdf_folder}  ${zip_file}   recursive=True  include=*.pdf
 
-Store the receipt as a PDF file
+Salva em PDF
     [Arguments]        ${ORDER_NUMBER}
 
     Wait Until Element Is Visible   //*[@id="receipt"]
@@ -164,7 +164,7 @@ Store the receipt as a PDF file
 
     [Return]    ${arquivo_PDF}
 
-Embed the robot screenshot to the receipt PDF file
+Salva print no PDF
     [Arguments]     ${IMG_FILE}     ${PDF_FILE}
 
     Log To Console                  Printing Embedding image ${IMG_FILE} in pdf file ${PDF_FILE}
