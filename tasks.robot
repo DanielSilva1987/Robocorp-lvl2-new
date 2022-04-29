@@ -17,7 +17,7 @@ Library           RPA.Robocloud.Secrets
 Library           OperatingSystem
 
 
-*** Variables *** 
+*** Variables ***
 ${url}            https://robotsparebinindustries.com/#/robot-order
 
 ${img_folder}     ${CURDIR}${/}image_files
@@ -54,7 +54,7 @@ OrderRobots
     Create a Zip
 
     Log Out And Close The Browser
-    Display the success dialog  USER_NAME=${username}
+
 
 *** Keywords ***
 Open website
