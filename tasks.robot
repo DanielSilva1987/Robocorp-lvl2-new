@@ -35,7 +35,10 @@ cria as pastas
 
 
 OrderRobots
-    Open website
+    Get The Program Author Name From Our Vault
+    ${username}=    Get The User Name
+    Open the robot order website
+
 
     ${orders}=    pega orders
     FOR    ${row}    IN    @{orders}
@@ -51,7 +54,7 @@ OrderRobots
     Create a Zip
 
     Log Out And Close The Browser
-   
+    Display the success dialog  USER_NAME=${username}
 
 *** Keywords ***
 Open website
@@ -180,3 +183,20 @@ Salva print no PDF
     # Add the files to the PDF
     Add Files To PDF    ${myfiles}    ${PDF_FILE}     ${True}
     Close all Pdfs       
+Get The Program Author Name From Our Vault
+    Log To Console          Getting Secret from our Vault
+    ${secret}=              Get Secret      mysecrets
+    Log                     ${secret}[whowrotethis] wrote this program for you      console=yes
+
+Get The User Name
+    Add heading             I am your RoboCorp Order Genie
+    Add text input          myname    label=What is thy name, oh sire?     placeholder=Give me some input here
+    ${result}=              Run dialog
+    [Return]                ${result.myname}
+
+Display the success dialog
+    [Arguments]   ${USER_NAME}
+    Add icon      Success
+    Add heading   Your orders have been processed
+    Add text      Dear ${USER_NAME} - all orders have been processed. Have a nice day!
+    Run dialog    title=Success
